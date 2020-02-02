@@ -1,4 +1,4 @@
-// Simple Lexer for C
+// Simple Lexer for C like language
 #include <fstream>
 #include <string>
 

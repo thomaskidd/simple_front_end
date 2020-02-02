@@ -2,7 +2,7 @@
 #include <iostream>
 
 #include "lexer.h"
-// #include "parser.h"
+#include "ast.h"
 
 using namespace std;
 
