@@ -1,4 +1,6 @@
-// Simple Parser for C like language
+// Simple Abstract Syntax Tree nodes for C like language
+#pragma once
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -131,5 +133,10 @@ public:
 /* Looping and Branching */
 
 // Branching
+class BranchAST {
+private:
+	std::unique_ptr<ExprAST> _condition;
+
+};
 
 // While Loops

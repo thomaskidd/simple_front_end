@@ -1,13 +1,11 @@
 // Simple Lexer for C like language
+#pragma once
+
 #include <fstream>
 #include <string>
 
-// testing
-#include <iostream>
-
 // Token types - unknown tokens are characters [0-255]
-enum TokenType 
-{
+enum TokenType {
 	// Error State
 	token_error = -1,
 
@@ -20,8 +18,7 @@ enum TokenType
 };
 
 // Definition
-class Lexer 
-{
+class Lexer {
 
 private:
 	// Tokens
@@ -50,20 +47,17 @@ public:
 };
 
 // Implementations
-Lexer::Lexer() : _lastToken(""), _lastTokenType(token_error)
-{
+Lexer::Lexer() : _lastToken(""), _lastTokenType(token_error) {
 	// Do Nothing
 }
 
-Lexer::~Lexer()
-{
+Lexer::~Lexer() {
 	_lastToken = "";
 	_lastTokenType = token_error;
 }
 
 // Setters
-bool Lexer::openFile(std::string filename)
-{
+bool Lexer::openFile(std::string filename) {
 	// Error Check
 	if (_fileIsOpen) {
 		return false;
@@ -75,8 +69,7 @@ bool Lexer::openFile(std::string filename)
 	return _fileIsOpen;
 }
 
-bool Lexer::closeFile()
-{
+bool Lexer::closeFile() {
 	// Error Check
 	if (!_fileIsOpen) {
 		return false;
@@ -89,19 +82,16 @@ bool Lexer::closeFile()
 }
 
 // Getters
-std::string Lexer::getLastToken()
-{
+std::string Lexer::getLastToken() {
 	return _lastToken;
 }
 
-TokenType Lexer::getLastTokenType()
-{
+TokenType Lexer::getLastTokenType() {
 	return _lastTokenType;
 }
 
 // Tokenizer
-bool Lexer::readToken()
-{
+bool Lexer::readToken() {
 	// Error Check
 	if (!_fileIsOpen) {
 		return false;
