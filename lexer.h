@@ -6,15 +6,18 @@
 
 // Token types - unknown tokens are characters [0-255]
 enum TokenType {
+	// Uninitialized
+	token_uninit = -1,
+
 	// Error State
-	token_error = -1,
+	token_error = -2,
 
 	// Controls
-	token_eof = -2,
+	token_eof = -3,
 
 	// Code tokens
-	token_identifier = -3,
-	token_number = -4
+	token_identifier = -4,
+	token_literal = -5
 };
 
 // Definition
@@ -46,9 +49,10 @@ public:
 	bool readToken();
 };
 
-// Implementations
-Lexer::Lexer() : _lastToken(""), _lastTokenType(token_error) {
-	// Do Nothing
+// Implementation
+
+Lexer::Lexer() : _lastToken(""), _lastTokenType(token_uninit) {
+	// Nothing to do
 }
 
 Lexer::~Lexer() {
@@ -136,7 +140,7 @@ bool Lexer::readToken() {
 
 		// Set _lastToken and _lastTokenType
 		_lastToken = token;
-		_lastTokenType = token_number;
+		_lastTokenType = token_literal;
 	}
 	// End of file
 	else if (nextChar == EOF) {

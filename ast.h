@@ -6,9 +6,10 @@
 #include <vector>
 
 enum DataType {
-	type_int = 0,
-	type_float,
-	type_char
+	datatype_unassigned = 0,
+	datatype_int,
+	datatype_float,
+	datatype_char
 };
 
 // Expression Base Class
@@ -29,25 +30,25 @@ private:
 	int _val;
 
 public:
-	IntegerAST(int val) : ExprAST(type_int), _val(val) {}
+	IntegerAST(int val) : ExprAST(datatype_int), _val(val) {}
 };
 
-// Floating Point Literals
+// Floating Point Literals - TODO: Support this dataype
 class FloatAST : public ExprAST {
 private:
 	float _val;
 
 public:
-	FloatAST(float val) : ExprAST(type_float), _val(val) {}
+	FloatAST(float val) : ExprAST(datatype_float), _val(val) {}
 };
 
-// Character Literals
+// Character Literals - TODO: Support this dataype
 class CharAST : public ExprAST {
 private:
 	char _val;
 
 public:
-	CharAST(char val) : ExprAST(type_char), _val(val) {}
+	CharAST(char val) : ExprAST(datatype_char), _val(val) {}
 };
 
 /* Variables */
@@ -129,6 +130,7 @@ public:
 	{}
 };
 
+// TODO Implement Branching
 
 /* Looping and Branching */
 
