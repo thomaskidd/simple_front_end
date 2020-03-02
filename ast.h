@@ -5,12 +5,7 @@
 #include <string>
 #include <vector>
 
-enum DataType {
-	datatype_unassigned = 0,
-	datatype_int,
-	datatype_float,
-	datatype_char
-};
+#include "datatype.h"
 
 // Expression Base Class
 class ExprAST {
@@ -20,6 +15,8 @@ protected:
 public:
 	ExprAST(DataType dataType) : _dataType(dataType) {}
 	virtual ~ExprAST() {}
+
+	DataType getDataType() { return _dataType; }
 };
 
 /* Literals */
@@ -62,17 +59,26 @@ public:
 	VariableAST(DataType type, const std::string &name) : ExprAST(type), _name(name) {}
 };
 
+/* Code Blocks */
+class BlockAST {
+private:
+	std::vector<std::unique_ptr<ExprAST>> _exprs;
+
+public:
+	BlockAST(std::vector<std::unique_ptr<ExprAST>> exprs) : _exprs(std::move(exprs)) {}
+};
+
 /* Binary Expressions */
 
 // Binary Expressions
 class BinaryExprAST : public ExprAST {
 private:
-	char _binop;
+	std::string _binop;
 	std::unique_ptr<ExprAST> _leftExpr;
 	std::unique_ptr<ExprAST> _rightExpr;
 
 public:
-	BinaryExprAST(DataType type, char binop, std::unique_ptr<ExprAST> left, std::unique_ptr<ExprAST> right) :
+	BinaryExprAST(DataType type, const std::string &binop, std::unique_ptr<ExprAST> left, std::unique_ptr<ExprAST> right) :
 	ExprAST(type),
 	_binop(binop),
 	_leftExpr(std::move(left)),
@@ -85,20 +91,21 @@ public:
 // Function Protoypes
 class PrototypeAST {
 private:
-	std::string _name;
-	std::vector<std::string> _params;
-	std::vector<DataType> _paramTypes;
 	DataType _returnType;
+	std::string _name;
+	std::vector<DataType> _paramTypes;
+	std::vector<std::string> _params;
 
 public:
-	PrototypeAST(const std::string &name, 
-		std::vector<std::string> params, 
+	PrototypeAST(
+		DataType returnType,
+		const std::string &name,
 		std::vector<DataType> paramTypes,
-		DataType returnType) :
+		std::vector<std::string> params) :
+	_returnType(returnType),
 	_name(name),
-	_params(params),
 	_paramTypes(paramTypes),
-	_returnType(returnType)
+	_params(params)
 	{}
 };
 
@@ -106,13 +113,13 @@ public:
 class FunctionAST {
 private:
 	std::unique_ptr<PrototypeAST> _prototype;
-	std::vector<std::unique_ptr<ExprAST>> _exprs;
+	std::unique_ptr<BlockAST> _exprBlock;
 
 public:
 	FunctionAST(std::unique_ptr<PrototypeAST> prototype,
-		std::vector<std::unique_ptr<ExprAST>> exprs) :
+		std::unique_ptr<BlockAST> exprBlock) :
 	_prototype(std::move(prototype)),
-	_exprs(std::move(exprs))
+	_exprBlock(std::move(exprBlock))
 	{}
 };
 
@@ -138,6 +145,8 @@ public:
 class BranchAST {
 private:
 	std::unique_ptr<ExprAST> _condition;
+	std::unique_ptr<BlockAST> _trueExprBlock;  // Code block to execute if condition evaluates true
+	std::unique_ptr<BlockAST> _falseExprBlock; // Code block to execute if condition evaluates false
 
 };
 

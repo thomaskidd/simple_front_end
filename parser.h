@@ -1,7 +1,11 @@
 // Simple Parser for C like language
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include "ast.h"
+#include "datatype.h"
 #include "binop.h"
 #include "lexer.h"
 
@@ -16,7 +20,7 @@ private:
 	std::string readAndConsumeToken();
 
 	/* Operator Precedence */
-	int getTokenPrec(std::string &token);
+	int getTokenPrec(const std::string &token);
 
 	/* Internal Parsing Methods */
 
@@ -39,10 +43,10 @@ private:
 	std::unique_ptr<ExprAST> parseExpression();
 
 	// Function Prototypes
-	std::unique_ptr<ExprAST> parsePrototype();
+	std::unique_ptr<PrototypeAST> parsePrototype();
 
 	// Function Definitions
-	std::unique_ptr<ExprAST> parseFunction();
+	std::unique_ptr<FunctionAST> parseFunction();
 
 
 public:
@@ -94,8 +98,8 @@ std::string Parser::readAndConsumeToken() {
 }
 
 // Return -1 for an invalid token
-getTokenPrec(std::string &token) {
-	if (binop_precedence.count(token) != 0) {
+int Parser::getTokenPrec(const std::string &token) {
+	if (binop_precedence.count(token)) {
 		return binop_precedence.at(token);
 	}
 	else {
@@ -202,24 +206,114 @@ std::unique_ptr<ExprAST> Parser::parsePrimary() {
 // Right hand side of binary expressions
 std::unique_ptr<ExprAST> Parser::parseBinOpRHS(int leftPrec, std::unique_ptr<ExprAST>left) {
 
+	while(true) {
+
+		std::string binop = peekToken();
+		int binopPrec = getTokenPrec(binop);
+
+		// If next operation has a lower precedence
+		// do not bind it to this binop
+		if (binopPrec < leftPrec) {
+			return left;
+		}
+
+		// Consume binop token
+		consumeToken();
+
+		// Create the expression on the other side of the binop
+		auto right = parsePrimary();
+		if (!right) {
+			return nullptr;
+		}
+
+		// If the next binop binds tighter, add it to the
+		// right hand side
+		std::string nextBinop = peekToken();
+		int nextBinopPrec = getTokenPrec(nextBinop);
+
+		if (nextBinopPrec > binopPrec) {
+
+			// Everything with a higher precedence than binopPrec should be
+			// included in the right hand side
+			right = parseBinOpRHS(binopPrec + 1, std::move(right));
+		}
+
+
+		// Re-assign new left hand side
+		left = std::make_unique<BinaryExprAST>(left->getDataType(), binop, std::move(left), std::move(right));
+	}
 }
 
 // Handler for all expressions
 std::unique_ptr<ExprAST> Parser::parseExpression() {
 	auto left = parsePrimary();
-	if (left == nullptr) {
+	if (!left) {
 		return nullptr;
 	}
 
-	retrun parseBinOpRHS(0, std::move(left));
+	return parseBinOpRHS(0, std::move(left));
 }
 
 // Function Prototypes
-std::unique_ptr<ExprAST> Parser::parsePrototype() {
+std::unique_ptr<PrototypeAST> Parser::parsePrototype() {
 
+	// Get return type
+	if (peekTokenType() != token_identifier) {
+		return nullptr;
+	}
+	DataType returnType = str2datatype(readAndConsumeToken());
+
+	// Get name
+	if (peekTokenType() != token_identifier) {
+		return nullptr;
+	}
+	std::string name = readAndConsumeToken();
+
+	if (peekToken() != "(") {
+		return nullptr;
+	}
+	// Consume "("
+	consumeToken();
+	std::vector<std::string> params;
+	std::vector<DataType> paramTypes;
+
+	if (peekToken() != ")") {
+
+		while(true) {
+
+			// TODO - add error checking
+			DataType type = str2datatype(readAndConsumeToken());
+			std::string param = readAndConsumeToken();
+
+			paramTypes.push_back(type);
+			params.push_back(param);
+
+			// Check for end of prototype
+			if (peekToken() == ")") {
+				break;
+			}
+
+			// Handle comma
+			if (peekToken() != ",") {
+				return nullptr;
+			}
+			// Consume ","
+			consumeToken();
+		}
+
+	}
+	// Consume ")"
+	consumeToken();
+
+	return std::make_unique<PrototypeAST>(returnType, name, std::move(paramTypes), std::move(params));
 }
 
 // Function Definitions
-std::unique_ptr<ExprAST> Parser::parseFunction() {
+std::unique_ptr<FunctionAST> Parser::parseFunction() {
+	auto prototype = parsePrototype();
+	if (!prototype) {
+		return nullptr;
+	}
 
+	// auto expr = 
 }
